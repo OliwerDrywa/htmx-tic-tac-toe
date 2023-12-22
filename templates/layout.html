@@ -1,0 +1,28 @@
+{{define "layout"}}
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>untitled hackathon game</title>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- htmx -->
+    <script src="https://unpkg.com/htmx.org@1.9.9"></script>
+    <script src="https://unpkg.com/htmx.org/dist/ext/ws.js"></script>
+
+    <!-- <script>
+        htmx.logAll();
+    </script> -->
+
+    <!-- tailwind -->
+    <!-- <link rel="stylesheet" href="./tw.out.css"> -->
+</head>
+
+<body class="font-mono w-full h-full">
+    {{template "content" .}}
+</body>
+
+</html>
+{{end}}

@@ -1,0 +1,22 @@
+{{define "content"}}
+<!-- <h1>Welcome to {{.Title}}!</h1>
+<p>{{.}}</p> -->
+
+<main class="max-w-screen-lg mx-auto">
+    <h1 class="text-6xl">
+        untitled <br>
+        hackathon <br>
+        thing
+    </h1>
+
+    <div hx-ext="ws" ws-connect="wss://ws.postman-echo.com/raw" hx-target="#chat_room">
+        <ul id="chat_room">
+        </ul>
+
+        <form ws-send>
+            <input name="chat_message" id="chat_message"></input>
+            <button type="submit">SEND</button>
+        </form>
+    </div>
+</main>
+{{end}}
