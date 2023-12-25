@@ -1,0 +1,18 @@
+{{define "api.user-joined"}}
+
+<!--
+type struct {
+	Icon string
+	Name string
+}
+-->
+
+<div id="logged-in-as" class="flex flex-row">
+	logged in as
+	<img src="{{.Icon}}" alt="user image">
+	<p>
+		{{.Name}}
+	</p>
+</div>
+
+{{end}}

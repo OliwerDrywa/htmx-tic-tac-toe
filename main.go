@@ -8,8 +8,7 @@ import (
 )
 
 func main() {
-	fs := http.StripPrefix("/static/", http.FileServer(http.Dir("web/static")))
-	http.Handle("/static/", fs)
+	http.HandleFunc("/static/", handlers.StaticFileHandler)
 	http.HandleFunc("/", handlers.IndexHandler)
 	http.HandleFunc("/chatroom", handlers.WebSocketHandler)
 

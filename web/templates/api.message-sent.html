@@ -1,0 +1,22 @@
+{{define "api.message-sent"}}
+
+<!--
+type struct {
+	Icon string
+	Name string
+	Text string
+}
+-->
+<ul id="messages" hx-swap-oob="beforeend">
+	<li class="flex flex-row">
+		<img src="{{.Icon}}" alt="user image">
+		<p>
+			{{.Name}}: {{.Text}}
+		</p>
+	</li>
+</ul>
+
+<!-- empty chat form -->
+{{template "chat-form" .}}
+
+{{end}}

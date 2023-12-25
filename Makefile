@@ -1,10 +1,10 @@
-.PHONY: run build 
+.PHONY: tw go 
 
-run:
-	./tailwindcss -i ./web/tailwind.css -o ./web/static/main.css --watch &
-	go run main.go
+tw:
+	./tailwindcss -i ./web/tailwind.css -o ./web/static/main.css --watch
+ 
 
-build:
-	./tailwindcss -i ./web/tailwind.css -o ./web/static/main.css
-	go build 
+go:
+	nodemon --watch './**/*.go' --signal SIGTERM --exec 'go' run main.go
+
 	
