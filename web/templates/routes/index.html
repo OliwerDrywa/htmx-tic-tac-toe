@@ -1,0 +1,27 @@
+{{define "page-content"}}
+
+<body class="absolute top-0 bottom-0 left-0 right-0 font-mono flex flex-row">
+    <main class="flex flex-col h-full mx-auto">
+        <h1 class="text-6xl">
+            untitled <br>
+            hackathon <br>
+            game
+        </h1>
+
+        <form action="/tic-tac-toe">
+            <label>
+                name:
+                <input type="text">
+            </label>
+            <!-- <label>
+                room:
+                <input type="text">
+            </label> -->
+            <button type="submit">
+                join
+            </button>
+        </form>
+    </main>
+</body>
+
+{{end}}

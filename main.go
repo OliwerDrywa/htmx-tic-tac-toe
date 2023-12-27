@@ -10,7 +10,8 @@ import (
 func main() {
 	http.HandleFunc("/static/", handlers.StaticFileHandler)
 	http.HandleFunc("/", handlers.IndexHandler)
-	http.HandleFunc("/chatroom", handlers.WebSocketHandler)
+	http.HandleFunc("/tic-tac-toe", handlers.TicTacToeHandler)
+	http.HandleFunc("/socket", handlers.WebSocketHandler)
 
 	fmt.Println("listening on http://localhost:8080")
 	http.ListenAndServe(":8080", nil)
