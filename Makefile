@@ -1,10 +1,12 @@
-.PHONY: tw go 
+run:
+	@templ generate &
+	@tailwindcss -i tailwind.css -o public/main.css &
+	@go run cmd/main.go
 
-tw:
-	./tailwindcss -i ./web/tailwind.css -o ./web/static/main.css --watch
- 
+watch:
+	@templ generate --watch &
+	@tailwindcss -i tailwind.css -o public/main.css --watch &
+	@gow run cmd/main.go
 
-go:
-	nodemon --watch './**/*.go' --signal SIGTERM --exec 'go' run main.go
-
-	
+# @nodemon --watch './**/*.go' --signal SIGTERM --exec 'go' run cmd/main.go
+# @templ generate --watch --proxy="http://localhost:8080" --cmd="runtest"

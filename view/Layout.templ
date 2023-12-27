@@ -1,0 +1,18 @@
+package view
+
+templ Layout() {
+	<!DOCTYPE html>
+	<html>
+		<head>
+			<title>untitled hackathon game</title>
+			<meta charset="utf-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<!-- htmx -->
+			<script src="https://unpkg.com/htmx.org@1.9.9"></script>
+			<script src="https://unpkg.com/htmx.org/dist/ext/ws.js"></script>
+			<!-- tailwind -->
+			<link rel="stylesheet" href="/public/main.css"/>
+		</head>
+		{ children... }
+	</html>
+}

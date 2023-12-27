@@ -1,14 +1,15 @@
-package handlers
+package handler
 
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
+	"hackathon23/view"
 
 	"bytes"
 	"html/template"
 
 	"github.com/gorilla/websocket"
+	"github.com/labstack/echo"
 )
 
 type messageWS struct {
@@ -30,30 +31,35 @@ var clients = make(map[*websocket.Conn]*User) // Connected clients
 var broadcast = make(chan message)            // Broadcast channel
 
 // when player first joins
-func WebSocketHandler(w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
-
+func WebSocketHandler(c echo.Context) error {
+	conn, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return err
 	}
-
 	defer conn.Close()
 
 	user, err := RandomUser()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusFailedDependency)
-		return
+		return err
 	}
 
 	clients[conn] = user // Add new client to the connected clients map
-	html, err := renderUserJoined(templateUserJoined{user.Icon, user.Name})
+
+	var html bytes.Buffer
+	err = view.ApiJoinRoom("foo", "test").Render(c.Request().Context(), &html)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return err
 	}
 
-	sendToAllClients(html)
+	// Send the HTML message to all connected clients
+	for client := range clients {
+		err := client.WriteMessage(websocket.TextMessage, html.Bytes())
+		if err != nil {
+			fmt.Println("Error writing message:", err)
+			client.Close()
+			delete(clients, client) // Remove client from connected clients map
+		}
+	}
 
 	for {
 		// Read msg from client
@@ -81,35 +87,8 @@ func WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			parsedMessage.Text,
 		}
 	}
-}
 
-func sendToAllClients(bytes []byte) {
-	// Send the interpolated message to all connected clients
-	for client := range clients {
-		err := client.WriteMessage(websocket.TextMessage, bytes)
-		if err != nil {
-			fmt.Println("Error writing message:", err)
-			client.Close()
-			delete(clients, client) // Remove client from connected clients map
-		}
-	}
-}
-
-type templateUserJoined struct {
-	Icon string
-	Name string
-}
-
-func renderUserJoined(data templateUserJoined) (msg []byte, err error) {
-	var html bytes.Buffer
-	tmpl := template.Must(template.ParseGlob("web/templates/*.html"))
-	err = tmpl.ExecuteTemplate(&html, "api.user-joined", data)
-	if err != nil {
-		fmt.Println("Error interpolating message:", err)
-		return nil, err
-	}
-
-	return html.Bytes(), nil
+	return nil
 }
 
 func renderMessageSent(data message) (msg []byte, err error) {
@@ -126,19 +105,29 @@ func renderMessageSent(data message) (msg []byte, err error) {
 }
 
 func init() {
-	go (func() {
-		for {
-			// Get the next msg from the broadcast channel
-			msg := <-broadcast
+	go broadcastMessagesToAllClient()
+}
 
-			// Create a template and interpolate it with the message
-			html, err := renderMessageSent(msg)
-			if err != nil {
-				fmt.Println("Error rendering message:", err)
-				continue
-			}
+func broadcastMessagesToAllClient() {
+	for {
+		// Get the next msg from the broadcast channel
+		msg := <-broadcast
 
-			sendToAllClients(html)
+		// Create a template and interpolate it with the message
+		html, err := renderMessageSent(msg)
+		if err != nil {
+			fmt.Println("Error rendering message:", err)
+			continue
 		}
-	})()
+
+		// Send the HTML message to all connected clients
+		for client := range clients {
+			err := client.WriteMessage(websocket.TextMessage, html)
+			if err != nil {
+				fmt.Println("Error writing message:", err)
+				client.Close()
+				delete(clients, client) // Remove client from connected clients map
+			}
+		}
+	}
 }
