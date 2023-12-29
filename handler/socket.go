@@ -1,34 +1,18 @@
 package handler
 
 import (
-	"encoding/json"
 	"fmt"
-	"hackathon23/view"
-
-	"bytes"
-	"html/template"
+	"hackathon23/view/components"
+	"hackathon23/view/events"
 
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo"
 )
 
-type messageWS struct {
-	Text string `json:"message"`
-}
+var clients = make(map[*websocket.Conn]string) // Connected clients
+var broadcast = make(chan []byte)              // Broadcast channel
 
-type message struct {
-	Icon string
-	Name string
-	Text string
-}
-
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-}
-
-var clients = make(map[*websocket.Conn]*User) // Connected clients
-var broadcast = make(chan message)            // Broadcast channel
+var upgrader = websocket.Upgrader{ReadBufferSize: 1024, WriteBufferSize: 1024}
 
 // when player first joins
 func WebSocketHandler(c echo.Context) error {
@@ -38,96 +22,109 @@ func WebSocketHandler(c echo.Context) error {
 	}
 	defer conn.Close()
 
-	user, err := RandomUser()
+	// event - ws_connected
+	html, err := render(c, events.WebSocketConnected())
+	if err != nil {
+		return err
+	}
+	err = send(conn, html)
 	if err != nil {
 		return err
 	}
 
-	clients[conn] = user // Add new client to the connected clients map
+	// event - user_joined
+	var msg0 struct {
+		UserName string `json:"user-name"`
+	}
+	err = receive(conn, &msg0)
+	if err != nil {
+		return err
+	}
+	username := msg0.UserName
+	// TODO - validate the UserName isn't empty on server too
 
-	var html bytes.Buffer
-	err = view.ApiJoinRoom("foo", "test").Render(c.Request().Context(), &html)
+	// Add new client to the connected clients map
+	clients[conn] = username
+
+	html, err = render(c, events.YouJoinedRoom())
+	if err != nil {
+		return err
+	}
+	err = send(conn, html)
 	if err != nil {
 		return err
 	}
 
-	// Send the HTML message to all connected clients
-	for client := range clients {
-		err := client.WriteMessage(websocket.TextMessage, html.Bytes())
-		if err != nil {
-			fmt.Println("Error writing message:", err)
-			client.Close()
-			delete(clients, client) // Remove client from connected clients map
-		}
+	// Send the "X user joined" message to all connected clients
+	html, err = render(c, events.UserJoinedRoom(username))
+	if err != nil {
+		return err
 	}
+	broadcast <- html
+	html, err = render(c, events.WhosHere(clients))
+	if err != nil {
+		return err
+	}
+	broadcast <- html
 
 	for {
 		// Read msg from client
-		_, msg, err := conn.ReadMessage()
+		var msg struct {
+			ChatMessage string `json:"chat-message"`
+		}
+		err = receive(conn, &msg)
 		if err != nil {
-			fmt.Println("Error reading message:", err)
-			delete(clients, conn) // Remove client from connected clients map
-			break
+			return err
 		}
 
-		// if i cared about security i'd sanitize the input...
-
-		// Parse the JSON message
-		var parsedMessage messageWS
-		err = json.Unmarshal(msg, &parsedMessage)
+		html, err = render(c, events.NewMessage(username, msg.ChatMessage))
 		if err != nil {
-			fmt.Println("Error parsing message:", err)
-			continue
+			return err
 		}
 
 		// Broadcast the received message to all connected clients
-		broadcast <- message{
-			user.Icon,
-			user.Name, // + user.Results[0].Name.Last
-			parsedMessage.Text,
+		broadcast <- html
+
+		// clear chat box
+		html, err = render(c, components.EmptyChatInput())
+		if err != nil {
+			return err
+		}
+
+		err = send(conn, html)
+		if err != nil {
+			return err
 		}
 	}
+	// TODO - REMOVE PLAYER FROM ROOM WHEN SOCKET CLOSES
+	// TODO - REMOVE PLAYER FROM ROOM WHEN SOCKET CLOSES
+	// TODO - REMOVE PLAYER FROM ROOM WHEN SOCKET CLOSES
+	// TODO - REMOVE PLAYER FROM ROOM WHEN SOCKET CLOSES
+	// TODO - REMOVE PLAYER FROM ROOM WHEN SOCKET CLOSES
+	// TODO - REMOVE PLAYER FROM ROOM WHEN SOCKET CLOSES
+	// TODO - REMOVE PLAYER FROM ROOM WHEN SOCKET CLOSES
+	// TODO - REMOVE PLAYER FROM ROOM WHEN SOCKET CLOSES
+	// TODO - REMOVE PLAYER FROM ROOM WHEN SOCKET CLOSES
+	// TODO - REMOVE PLAYER FROM ROOM WHEN SOCKET CLOSES
+	// TODO - REMOVE PLAYER FROM ROOM WHEN SOCKET CLOSES
+	// TODO - REMOVE PLAYER FROM ROOM WHEN SOCKET CLOSES
+	// TODO - REMOVE PLAYER FROM ROOM WHEN SOCKET CLOSES
 
-	return nil
-}
-
-func renderMessageSent(data message) (msg []byte, err error) {
-	// Create a template and interpolate it with the message
-	var html bytes.Buffer
-	tmpl := template.Must(template.ParseGlob("web/templates/*.html"))
-	err = tmpl.ExecuteTemplate(&html, "api.message-sent", data)
-	if err != nil {
-		fmt.Println("Error interpolating message:", err)
-		return nil, err
-	}
-
-	return html.Bytes(), nil
 }
 
 func init() {
-	go broadcastMessagesToAllClient()
-}
+	go (func() {
+		for {
+			html := <-broadcast
 
-func broadcastMessagesToAllClient() {
-	for {
-		// Get the next msg from the broadcast channel
-		msg := <-broadcast
-
-		// Create a template and interpolate it with the message
-		html, err := renderMessageSent(msg)
-		if err != nil {
-			fmt.Println("Error rendering message:", err)
-			continue
-		}
-
-		// Send the HTML message to all connected clients
-		for client := range clients {
-			err := client.WriteMessage(websocket.TextMessage, html)
-			if err != nil {
-				fmt.Println("Error writing message:", err)
-				client.Close()
-				delete(clients, client) // Remove client from connected clients map
+			for conn := range clients {
+				err := send(conn, html)
+				if err != nil {
+					fmt.Println("Error writing message:", err)
+					conn.Close()
+					delete(clients, conn) // Remove client from connected clients map
+				}
 			}
 		}
-	}
+	})()
 }

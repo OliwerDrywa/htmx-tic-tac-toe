@@ -1,0 +1,30 @@
+package components
+
+templ SendChat() {
+	<form
+		id="send-chat"
+		ws-send
+		class="w-full flex flex-col"
+	>
+		<span class="w-full flex flex-row">
+			<p>
+				>
+			</p>
+			@EmptyChatInput()
+		</span>
+		<button type="submit" class="mt-8 mb-auto mx-2 border border-green-500">
+			send
+		</button>
+	</form>
+}
+
+templ EmptyChatInput() {
+	<input
+		id="sidebar-input"
+		type="text"
+		name="chat-message"
+		class="w-full mx-2 bg-transparent text-green-500 border-b border-green-500 placeholder-green-900 outline-none"
+		placeholder="type here to say hi!"
+		required
+	/>
+}

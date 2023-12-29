@@ -8,5 +8,13 @@ watch:
 	@tailwindcss -i tailwind.css -o public/main.css --watch &
 	@gow run cmd/main.go
 
-# @nodemon --watch './**/*.go' --signal SIGTERM --exec 'go' run cmd/main.go
-# @templ generate --watch --proxy="http://localhost:8080" --cmd="runtest"
+1:
+	@templ generate --watch
+
+2:
+	@tailwindcss -i tailwind.css -o public/main.css --watch
+
+3:
+	@gow run cmd/main.go
+
+# nodemon --watch './**/*.{go,templ}' --signal SIGTERM --exec 'make'
