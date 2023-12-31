@@ -1,20 +1,26 @@
-run:
-	@templ generate &
-	@tailwindcss -i tailwind.css -o web/public/main.css &
+run: 1 2 3
+
+1:
+	@templ generate
+
+2:
+	@tailwindcss -i tailwind.css -o web/public/main.css
+
+3:
 	@go run cmd/main.go
 
 watch:
-	@templ generate --watch &
-	@tailwindcss -i tailwind.css -o web/public/main.css --watch &
-	@gow run cmd/main.go
+	@make 1w
+	@make 2w
+	@make 3w
 
-1:
+1w:
 	@templ generate --watch
 
-2:
+2w:
 	@tailwindcss -i tailwind.css -o web/public/main.css --watch
 
-3:
+3w:
 	@gow run cmd/main.go
 
 # nodemon --watch './**/*.{go,templ}' --signal SIGTERM --exec 'make'
