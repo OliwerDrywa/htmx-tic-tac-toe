@@ -10,15 +10,15 @@ import (
 	"github.com/labstack/echo"
 )
 
-func render(c echo.Context, component templ.Component) ([]byte, error) {
+func render(c echo.Context, component templ.Component) []byte {
 	var html bytes.Buffer
 
 	err := component.Render(c.Request().Context(), &html)
 	if err != nil {
-		return html.Bytes(), err
+		panic(err)
 	}
 
-	return html.Bytes(), nil
+	return html.Bytes()
 }
 
 func send(conn *websocket.Conn, html []byte) (err error) {

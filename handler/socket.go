@@ -23,10 +23,7 @@ func WebSocketHandler(c echo.Context) error {
 	defer onWebSocketClosed(c, conn)
 
 	// event - ws_connected
-	html, err := render(c, views.WebSocketConnected())
-	if err != nil {
-		return err
-	}
+	html := render(c, views.WebSocketConnected())
 	err = send(conn, html)
 	if err != nil {
 		return err
@@ -46,25 +43,16 @@ func WebSocketHandler(c echo.Context) error {
 	// Add new client to the connected clients map
 	clients[conn] = username
 
-	html, err = render(c, views.YouJoinedRoom())
-	if err != nil {
-		return err
-	}
+	html = render(c, views.YouJoinedRoom())
 	err = send(conn, html)
 	if err != nil {
 		return err
 	}
 
 	// Send the "X user joined" message to all connected clients
-	html, err = render(c, components.UserJoinedTheRoomMessage(username))
-	if err != nil {
-		return err
-	}
+	html = render(c, components.UserJoinedTheRoomMessage(username))
 	broadcast <- html
-	html, err = render(c, components.GuestList(clients))
-	if err != nil {
-		return err
-	}
+	html = render(c, components.GuestList(clients))
 	broadcast <- html
 
 	for {
@@ -77,20 +65,12 @@ func WebSocketHandler(c echo.Context) error {
 			return err
 		}
 
-		html, err = render(c, components.NewMessage(username, msg.ChatMessage))
-		if err != nil {
-			return err
-		}
-
 		// Broadcast the received message to all connected clients
+		html = render(c, components.NewMessage(username, msg.ChatMessage))
 		broadcast <- html
 
 		// clear chat box
-		html, err = render(c, components.EmptyChatInput())
-		if err != nil {
-			return err
-		}
-
+		html = render(c, components.EmptyChatInput())
 		err = send(conn, html)
 		if err != nil {
 			return err
@@ -102,15 +82,9 @@ func onWebSocketClosed(c echo.Context, conn *websocket.Conn) error {
 	conn.Close()
 	delete(clients, conn) // Remove client from connected clients map
 
-	html, err := render(c, components.UserLeftTheRoomMessage(clients[conn]))
-	if err != nil {
-		return err
-	}
+	html := render(c, components.UserLeftTheRoomMessage(clients[conn]))
 	broadcast <- html
-	html, err = render(c, components.GuestList(clients))
-	if err != nil {
-		return err
-	}
+	html = render(c, components.GuestList(clients))
 	broadcast <- html
 
 	return nil
