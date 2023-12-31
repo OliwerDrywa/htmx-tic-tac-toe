@@ -1,0 +1,70 @@
+package components
+
+import "github.com/gorilla/websocket"
+
+templ GuestList(clients map[*websocket.Conn]string) {
+	<ul
+		id="whos-here"
+		style="max-width: 20rem;"
+		class="flex flex-row flex-wrap gap-4"
+	>
+		for _, name := range clients {
+			<span>{ name }</span>
+		}
+	</ul>
+}
+
+templ EmptyChatInput() {
+	<input
+		id="sidebar-input"
+		type="text"
+		name="chat-message"
+		class="w-full mx-2 bg-transparent text-green-500 border-b border-green-500 placeholder-green-900 outline-none"
+		placeholder="type here to say hi!"
+		required
+	/>
+}
+
+templ Message() {
+	<ul id="chat-messages" hx-swap-oob="beforeend">
+		<li class="flex flex-row first:mt-auto">
+			{ children... }
+		</li>
+	</ul>
+}
+
+templ UserJoinedTheRoomMessage(name string) {
+	@Message() {
+		> { name } joined the room
+	}
+}
+
+templ UserLeftTheRoomMessage(name string) {
+	@Message() {
+		> { name } left the room
+	}
+}
+
+templ NewMessage(name string, text string) {
+	@Message() {
+		> { name }: { text }
+	}
+}
+
+templ SendChatForm() {
+	<form
+		id="send-chat"
+		ws-send
+		class="w-full flex flex-col"
+	>
+		<span class="w-full flex flex-row">
+			<p>
+				>
+			</p>
+			@EmptyChatInput()
+		</span>
+		<button type="submit" class="mt-8 mb-auto mx-2 border border-green-500">
+			send
+		</button>
+	</form>
+}

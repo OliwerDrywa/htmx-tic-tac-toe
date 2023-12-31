@@ -2,8 +2,8 @@ package handler
 
 import (
 	"fmt"
-	"hackathon23/view/components"
-	"hackathon23/view/events"
+	"hackathon23/web/components"
+	"hackathon23/web/views"
 
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo"
@@ -20,10 +20,10 @@ func WebSocketHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
+	defer onWebSocketClosed(c, conn)
 
 	// event - ws_connected
-	html, err := render(c, events.WebSocketConnected())
+	html, err := render(c, views.WebSocketConnected())
 	if err != nil {
 		return err
 	}
@@ -46,7 +46,7 @@ func WebSocketHandler(c echo.Context) error {
 	// Add new client to the connected clients map
 	clients[conn] = username
 
-	html, err = render(c, events.YouJoinedRoom())
+	html, err = render(c, views.YouJoinedRoom())
 	if err != nil {
 		return err
 	}
@@ -56,12 +56,12 @@ func WebSocketHandler(c echo.Context) error {
 	}
 
 	// Send the "X user joined" message to all connected clients
-	html, err = render(c, events.UserJoinedRoom(username))
+	html, err = render(c, components.UserJoinedTheRoomMessage(username))
 	if err != nil {
 		return err
 	}
 	broadcast <- html
-	html, err = render(c, events.WhosHere(clients))
+	html, err = render(c, components.GuestList(clients))
 	if err != nil {
 		return err
 	}
@@ -77,7 +77,7 @@ func WebSocketHandler(c echo.Context) error {
 			return err
 		}
 
-		html, err = render(c, events.NewMessage(username, msg.ChatMessage))
+		html, err = render(c, components.NewMessage(username, msg.ChatMessage))
 		if err != nil {
 			return err
 		}
@@ -96,20 +96,24 @@ func WebSocketHandler(c echo.Context) error {
 			return err
 		}
 	}
-	// TODO - REMOVE PLAYER FROM ROOM WHEN SOCKET CLOSES
-	// TODO - REMOVE PLAYER FROM ROOM WHEN SOCKET CLOSES
-	// TODO - REMOVE PLAYER FROM ROOM WHEN SOCKET CLOSES
-	// TODO - REMOVE PLAYER FROM ROOM WHEN SOCKET CLOSES
-	// TODO - REMOVE PLAYER FROM ROOM WHEN SOCKET CLOSES
-	// TODO - REMOVE PLAYER FROM ROOM WHEN SOCKET CLOSES
-	// TODO - REMOVE PLAYER FROM ROOM WHEN SOCKET CLOSES
-	// TODO - REMOVE PLAYER FROM ROOM WHEN SOCKET CLOSES
-	// TODO - REMOVE PLAYER FROM ROOM WHEN SOCKET CLOSES
-	// TODO - REMOVE PLAYER FROM ROOM WHEN SOCKET CLOSES
-	// TODO - REMOVE PLAYER FROM ROOM WHEN SOCKET CLOSES
-	// TODO - REMOVE PLAYER FROM ROOM WHEN SOCKET CLOSES
-	// TODO - REMOVE PLAYER FROM ROOM WHEN SOCKET CLOSES
+}
 
+func onWebSocketClosed(c echo.Context, conn *websocket.Conn) error {
+	conn.Close()
+	delete(clients, conn) // Remove client from connected clients map
+
+	html, err := render(c, components.UserLeftTheRoomMessage(clients[conn]))
+	if err != nil {
+		return err
+	}
+	broadcast <- html
+	html, err = render(c, components.GuestList(clients))
+	if err != nil {
+		return err
+	}
+	broadcast <- html
+
+	return nil
 }
 
 func init() {

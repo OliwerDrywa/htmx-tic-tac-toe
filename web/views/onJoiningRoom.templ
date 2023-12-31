@@ -1,0 +1,19 @@
+package views
+
+import "hackathon23/web/components"
+
+templ YouJoinedRoom() {
+	@components.SideBar(false) {
+		<div class="border-y border-green-500 my-4 py-4">
+			<p>
+				> currently online:
+			</p>
+			<ul id="whos-here"></ul>
+		</div>
+		<ul id="chat-messages" class="h-full flex flex-col"></ul>
+		@components.SendChatForm()
+	}
+	@components.Game() {
+		where game?
+	}
+}

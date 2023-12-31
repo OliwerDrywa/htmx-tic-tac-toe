@@ -1,8 +1,5 @@
 {
   "files.exclude": {
-    ".vscode": true,
-    "go.sum": true,
-    "tailwind.css": true,
     "tailwindcss": true,
     "**/*_templ.go": true
   }

@@ -1,11 +1,11 @@
 package handler
 
 import (
-	"hackathon23/view/routes"
+	"hackathon23/web/views"
 
 	"github.com/labstack/echo"
 )
 
 func IndexHandler(c echo.Context) error {
-	return routes.Index().Render(c.Request().Context(), c.Response())
+	return views.Index().Render(c.Request().Context(), c.Response())
 }

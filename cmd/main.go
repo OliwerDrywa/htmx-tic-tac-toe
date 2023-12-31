@@ -10,7 +10,7 @@ import (
 func main() {
 	e := echo.New()
 
-	e.Static("/public", "public")
+	e.Static("/public", "web/public")
 	e.GET("/", handler.IndexHandler)
 	e.GET("/ws", handler.WebSocketHandler)
 
