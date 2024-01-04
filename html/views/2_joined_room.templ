@@ -1,9 +1,9 @@
 package views
 
-import "hackathon23/web/components"
+import "hackathon23/html/components"
 
-templ YouJoinedRoom() {
-	@components.SideBar(false) {
+templ YouJoinedRoom(gamestate [3][3]*int, role int) {
+	@components.AnimatedSidebar(false) {
 		<div class="border-y border-green-500 my-4 py-4">
 			<p>
 				> currently online:
@@ -13,7 +13,7 @@ templ YouJoinedRoom() {
 		<ul id="chat-messages" class="h-full flex flex-col"></ul>
 		@components.SendChatForm()
 	}
-	@components.Game() {
-		where game?
-	}
+	<main id="main" class="w-full grid place-content-center">
+		@components.Game(gamestate, role)
+	</main>
 }

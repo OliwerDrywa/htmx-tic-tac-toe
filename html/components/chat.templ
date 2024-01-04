@@ -1,15 +1,21 @@
 package components
 
-import "github.com/gorilla/websocket"
+templ Name(name string, variant int) {
+	<span class={ "mx-2", templ.KV("text-yellow-400", variant == 1 ) , templ.KV("text-cyan-400", variant == 2 ) }>
+		{ name }
+	</span>
+}
 
-templ GuestList(clients map[*websocket.Conn]string) {
+templ CurrentlyOnline(names []struct{Name string; Role int}) {
 	<ul
 		id="whos-here"
 		style="max-width: 20rem;"
 		class="flex flex-row flex-wrap gap-4"
 	>
-		for _, name := range clients {
-			<span>{ name }</span>
+		for _, cn := range names {
+			<span>
+				@Name(cn.Name, cn.Role)
+			</span>
 		}
 	</ul>
 }
@@ -28,26 +34,33 @@ templ EmptyChatInput() {
 templ Message() {
 	<ul id="chat-messages" hx-swap-oob="beforeend">
 		<li class="flex flex-row first:mt-auto">
-			{ children... }
+			> { children... }
 		</li>
 	</ul>
 }
 
-templ UserJoinedTheRoomMessage(name string) {
+templ UserJoinedTheRoomMessage(name string, variant int) {
 	@Message() {
-		> { name } joined the room
+		<span>
+			@Name(name, variant)
+			joined the room
+		</span>
 	}
 }
 
-templ UserLeftTheRoomMessage(name string) {
+templ UserLeftTheRoomMessage(name string, variant int) {
 	@Message() {
-		> { name } left the room
+		<span>
+			@Name(name, variant)
+			left the room
+		</span>
 	}
 }
 
-templ NewMessage(name string, text string) {
+templ NewChatMessage(name string, variant int, text string) {
 	@Message() {
-		> { name }: { text }
+		@Name(name, variant)
+		: { text }
 	}
 }
 

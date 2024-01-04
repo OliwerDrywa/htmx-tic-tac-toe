@@ -10,9 +10,9 @@ import (
 func main() {
 	e := echo.New()
 
-	e.Static("/public", "web/public")
+	e.Static("/static", "web")
 	e.GET("/", handler.IndexHandler)
-	e.GET("/ws", handler.WebSocketHandler)
+	e.GET("/ws", handler.WSHandler)
 
 	fmt.Println("listening on http://localhost:8080")
 	e.Logger.Fatal(e.Start(":8080"))

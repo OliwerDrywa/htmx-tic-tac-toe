@@ -4,7 +4,7 @@ run: 1 2 3
 	@templ generate
 
 2:
-	@tailwindcss -i tailwind.css -o web/public/main.css
+	@tailwindcss -i web/main.css -o web/_main.css
 
 3:
 	@go run cmd/main.go
@@ -18,7 +18,7 @@ watch:
 	@templ generate --watch
 
 2w:
-	@tailwindcss -i tailwind.css -o web/public/main.css --watch
+	@tailwindcss -i web/main.css -o web/_main.css --watch
 
 3w:
 	@gow run cmd/main.go

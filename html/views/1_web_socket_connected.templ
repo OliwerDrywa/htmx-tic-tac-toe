@@ -1,0 +1,31 @@
+package views
+
+import "hackathon23/html/components"
+
+templ SignInForm() {
+	@components.AnimatedSidebar(true) {
+		<form
+			ws-send
+			class="h-full flex flex-col"
+		>
+			<p class="w-full mt-auto">
+				> what do you want to be called?
+			</p>
+			<span class="w-full flex flex-row">
+				<p>
+					>
+				</p>
+				<input
+					id="sidebar-input"
+					type="text"
+					required
+					name="user-name"
+					class="w-full mx-2 bg-transparent outline-none border-b border-green-500"
+				/>
+			</span>
+			<button type="submit" class="mt-8 mb-auto mx-2 border border-green-500">
+				join
+			</button>
+		</form>
+	}
+}

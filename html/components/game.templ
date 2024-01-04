@@ -1,0 +1,53 @@
+package components
+
+templ Game(state [3][3]*int, role int) {
+	// templ.KV("text-yellow-400", role == 1 ) , templ.KV("text-cyan-400", role == 2)
+	<form ws-send>
+		<div class="w-96 h-96 grid grid-cols-3 grid-rows-3 gap-1 bg-green-500">
+			// @GameTile("0.0", role, role == *state[0][0], role == *state[0][0])
+			// @GameTile("0.1", role, role == *state[0][1], role == *state[0][1])
+			// @GameTile("0.2", role, role == *state[0][2], role == *state[0][2])
+			// @GameTile("1.0", role, role == *state[1][0], role == *state[1][0])
+			// @GameTile("1.1", role, role == *state[1][1], role == *state[1][1])
+			// @GameTile("1.2", role, role == *state[1][2], role == *state[1][2])
+			// @GameTile("2.0", role, role == *state[2][0], role == *state[2][0])
+			// @GameTile("2.1", role, role == *state[2][1], role == *state[2][1])
+			// @GameTile("2.2", role, role == *state[2][2], role == *state[2][2])
+			// @GameTile("0.0", role, role == *state[0][0], role == *state[0][0])
+			@GameTile("0.0", role, 0, 0)
+			@GameTile("0.1", role, 0, 1)
+			@GameTile("0.2", role, 1, 0)
+			@GameTile("1.0", role, 0, 0)
+			@GameTile("1.1", role, 0, 0)
+			@GameTile("1.2", role, 0, 0)
+			@GameTile("2.0", role, 0, 0)
+			@GameTile("2.1", role, 0, 0)
+			@GameTile("2.2", role, 0, 0)
+			@GameTile("0.0", role, 0, 0)
+		</div>
+		<button type="submit">
+			confirm
+		</button>
+	</form>
+}
+
+templ GameTile(value string, role int, P1 int, P2 int) {
+	if (P1 == 0 && P2 == 0) {
+		<input
+			type="radio"
+			name="game-input"
+			value={ value }
+			class={ "bg-zinc-900", templ.KV("checked:text-yellow-400", role == 1 ) }
+			hx-trigger="click"
+		/>
+	}
+	if (P1 == 1 && P2 == 0) {
+		<div class={ "bg-zinc-900", templ.KV("bg-yellow-400", role != 1 ), templ.KV("bg-cyan-400", role == 2 ) }></div>
+	}
+	if (P1 == 0 && P2 == 1) {
+		<div class={ "bg-zinc-900", templ.KV("bg-yellow-400", role == 1 ), templ.KV("bg-cyan-400", role != 2 ) }></div>
+	}
+	if (P1 == 1 && P2 == 1) {
+		panic("error - P1 and P2 should not be both 1")
+	}
+}
