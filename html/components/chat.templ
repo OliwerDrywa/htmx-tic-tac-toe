@@ -60,7 +60,7 @@ templ UserLeftTheRoomMessage(name string, variant int) {
 templ NewChatMessage(name string, variant int, text string) {
 	@Message() {
 		@Name(name, variant)
-		: { text }
+		- { text }
 	}
 }
 
@@ -70,6 +70,7 @@ templ SendChatForm() {
 		ws-send
 		class="w-full flex flex-col"
 	>
+		<input name="_type" value="chat-message" class="hidden"/>
 		<span class="w-full flex flex-row">
 			<p>
 				>

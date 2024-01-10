@@ -105,7 +105,18 @@ func (client WSClient) WithName(name string) WSClient {
 	Server.Clients[client.conn] = client
 	return client
 }
-func (client WSClient) Read() (msg map[string]interface{}, err error) {
+
+type Message struct {
+	Type string `json:"_type"`
+
+	UserName  string `json:"user-name"`
+	GameInput string `json:"game-input"`
+	ChatInput string `json:"chat-message"`
+
+	Headers map[string]interface{} `json:"HEADERS"`
+}
+
+func (client WSClient) Read() (msg Message, err error) {
 	// TODO - if i cared about security i'd sanitize the input...
 	_, raw, err := client.conn.ReadMessage()
 	if err != nil {

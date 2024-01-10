@@ -25,13 +25,13 @@ func WSHandler(c echo.Context) error {
 	}
 
 	msg, err := client.Read()
-	if err != nil {
+	if err != nil || msg.Type != "sign-in" {
 		client.Disconnect()
 		return nil
 	}
 	// TODO - validate the UserName isn't empty on server too
 	// TODO - and that usernames don't repeat
-	client = client.WithName(msg["user-name"].(string))
+	client = client.WithName(msg.UserName)
 	defer (func() {
 		client.Disconnect()
 		wss.Server.Broadcaster <- templ.UserLeftTheRoomMessage(client.Name, client.Role)
@@ -52,17 +52,17 @@ func WSHandler(c echo.Context) error {
 			break
 		}
 
-		if msg["chat-message"] != nil {
+		switch msg.Type {
+		case "chat-message":
 			err = client.Write(templ.EmptyChatInput())
 			if err != nil {
 				break
 			}
-			wss.Server.Broadcaster <- templ.NewChatMessage(client.Name, client.Role, msg["chat-message"].(string))
-		}
+			wss.Server.Broadcaster <- templ.NewChatMessage(client.Name, client.Role, msg.ChatInput)
 
-		if msg["game-input"] != nil {
-			col := int(msg["game-input"].(string)[0] - '0')
-			row := int(msg["game-input"].(string)[2] - '0')
+		case "game-input":
+			col := int(msg.GameInput[0] - '0')
+			row := int(msg.GameInput[2] - '0')
 			fmt.Println(row, col, client.Role)
 			// game.TicTacToe.MakeMove(row, col, client.Role)
 		}

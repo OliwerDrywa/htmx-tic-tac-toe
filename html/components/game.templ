@@ -3,6 +3,7 @@ package components
 templ Game(state [3][3]*int, role int) {
 	// templ.KV("text-yellow-400", role == 1 ) , templ.KV("text-cyan-400", role == 2)
 	<form ws-send>
+		<input name="_type" value="game-input" class="hidden"/>
 		<div class="w-96 h-96 grid grid-cols-3 grid-rows-3 gap-1 bg-green-500">
 			// @GameTile("0.0", role, role == *state[0][0], role == *state[0][0])
 			// @GameTile("0.1", role, role == *state[0][1], role == *state[0][1])
