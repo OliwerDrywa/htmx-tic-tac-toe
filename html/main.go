@@ -2,7 +2,6 @@ package html
 
 import (
 	"bytes"
-	"hackathon23/handler/game"
 	"hackathon23/html/components"
 	"hackathon23/html/views"
 
@@ -35,8 +34,8 @@ func render(c echo.Context, comp templ.Component) []byte {
 func (html HTMLBuilder) SignInForm() []byte {
 	return render(html.c, views.SignInForm())
 }
-func (html HTMLBuilder) GameScreen(state game.State, role int) []byte {
-	return render(html.c, views.YouJoinedRoom(state, role))
+func (html HTMLBuilder) WaitingForGame(pov int, state [3][3]int) []byte {
+	return render(html.c, views.WaitingForGame(pov, state))
 }
 
 func (html HTMLBuilder) UserJoinedTheRoomMessage(username string, role int) []byte {
@@ -56,4 +55,7 @@ func (html HTMLBuilder) CurrentlyOnline(names []struct {
 }
 func (html HTMLBuilder) EmptyChatInput() []byte {
 	return render(html.c, components.EmptyChatInput())
+}
+func (html HTMLBuilder) Game(pov int, state [3][3]int) []byte {
+	return render(html.c, components.Game(pov, state))
 }

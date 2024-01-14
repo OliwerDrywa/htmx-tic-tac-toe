@@ -2,7 +2,7 @@ package handler
 
 import (
 	"fmt"
-	"hackathon23/handler/game"
+	"hackathon23/handler/tictactoe"
 	"hackathon23/handler/wss"
 	"hackathon23/html"
 	"hackathon23/html/views"
@@ -14,12 +14,15 @@ func IndexHandler(c echo.Context) error {
 	return views.Index().Render(c.Request().Context(), c.Response())
 }
 
-func WSHandler(c echo.Context) error {
+var ttt = tictactoe.New()
+
+func WSHandler(c echo.Context) (err error) {
 	templ := html.NewBuilder(c)
 	client := wss.Server.Connect(c)
 
-	err := client.Write(templ.SignInForm())
+	err = client.Write(templ.SignInForm())
 	if err != nil {
+		fmt.Println("		failed to write")
 		client.Disconnect()
 		return nil
 	}
@@ -31,42 +34,75 @@ func WSHandler(c echo.Context) error {
 	}
 	// TODO - validate the UserName isn't empty on server too
 	// TODO - and that usernames don't repeat
-	client = client.WithName(msg.UserName)
+	client.SetName(msg.UserName)
 	defer (func() {
+		name := client.Name
+		role := client.Role
 		client.Disconnect()
-		wss.Server.Broadcaster <- templ.UserLeftTheRoomMessage(client.Name, client.Role)
-		wss.Server.Broadcaster <- templ.CurrentlyOnline(wss.Server.ListClients())
+
+		for _, c := range wss.Server.Clients {
+			c.Write(templ.UserLeftTheRoomMessage(name, role))
+			c.Write(templ.CurrentlyOnline(wss.Server.ListClients()))
+		}
+
+		if len(wss.Server.ListClients()) < 2 {
+			fmt.Println("less then 2 users")
+		}
 	})()
 
-	err = client.Write(templ.GameScreen(game.TicTacToe.GetState(), client.Role))
+	err = client.Write(templ.WaitingForGame(client.Role, ttt.GetState()))
 	if err != nil {
 		return nil
 	}
 
-	wss.Server.Broadcaster <- templ.UserJoinedTheRoomMessage(client.Name, client.Role)
-	wss.Server.Broadcaster <- templ.CurrentlyOnline(wss.Server.ListClients())
+	for _, c := range wss.Server.Clients {
+		c.Write(templ.UserJoinedTheRoomMessage(client.Name, client.Role))
+		c.Write(templ.CurrentlyOnline(wss.Server.ListClients()))
+	}
+
+	// there's now 2 players
+	// inform all
+	if len(wss.Server.ListClients()) == 2 {
+		fmt.Println("exactly 2 users")
+		for _, c := range wss.Server.Clients {
+			c.Write(templ.Game(client.Role, ttt.GetState()))
+		}
+	}
+
+	// there was already 2 players
+	// inform only the one joining
+	if len(wss.Server.ListClients()) > 2 {
+		fmt.Println("more than 2 users")
+		err = client.Write(templ.Game(client.Role, ttt.GetState()))
+		if err != nil {
+			return nil
+		}
+	}
 
 	for {
 		msg, err := client.Read()
 		if err != nil {
-			break
+			return nil
 		}
 
 		switch msg.Type {
 		case "chat-message":
 			err = client.Write(templ.EmptyChatInput())
 			if err != nil {
-				break
+				return nil
 			}
-			wss.Server.Broadcaster <- templ.NewChatMessage(client.Name, client.Role, msg.ChatInput)
+			for _, c := range wss.Server.Clients {
+				c.Write(templ.NewChatMessage(client.Name, client.Role, msg.ChatInput))
+			}
 
 		case "game-input":
-			col := int(msg.GameInput[0] - '0')
-			row := int(msg.GameInput[2] - '0')
-			fmt.Println(row, col, client.Role)
-			// game.TicTacToe.MakeMove(row, col, client.Role)
+			row := int(msg.GameInput[0] - '0')
+			col := int(msg.GameInput[2] - '0')
+
+			ttt.MakeMove(row, col, client.Role)
+			for _, c := range wss.Server.Clients {
+				c.Write(templ.Game(c.Role, ttt.GetState()))
+			}
 		}
 	}
-
-	return nil
 }
