@@ -19,9 +19,7 @@ var wss = WebSocketServer.New()
 
 func WSHandler(c echo.Context) (err error) {
 	templ := html.NewBuilder(c)
-	client := wss.
-		Connect(c).
-		AssignRole()
+	client := wss.Connect(c)
 
 	err = client.Write(templ.SignInForm())
 	if err != nil {
@@ -41,20 +39,31 @@ func WSHandler(c echo.Context) (err error) {
 
 		return nil
 	}
-	// TODO - validate the UserName isn't empty on server too
-	// TODO - and that usernames don't repeat
-	client.SetName(msg.UserName)
+
+	// TODO - validate the UserName isn't empty on server too and that usernames don't repeat
+	client.
+		SetName(msg.UserName).
+		AssignRole()
+
 	defer (func() {
-		name := client.Name
-		role := client.Role
-		client.
-			UnassignRole().
-			Disconnect()
+		client.Disconnect()
+
+		// Reassign role if user with Role = 1 or 2 disconnects
+		if client.Role == 1 || client.Role == 2 {
+			for _, c := range wss.Clients {
+				if c.Role == 0 {
+					c.Role = client.Role
+					break
+				}
+			}
+		}
 
 		for _, c := range wss.Clients {
-			c.Write(templ.UserLeftTheRoomMessage(name, role))
+			c.Write(templ.UserLeftTheRoomMessage(client.Name, client.Role))
 			c.Write(templ.CurrentlyOnline(ListClients(wss)))
 		}
+
+		client.UnassignRole()
 
 		if len(ListClients(wss)) < 2 {
 			fmt.Println("less then 2 users")
