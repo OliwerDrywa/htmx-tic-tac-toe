@@ -14,7 +14,7 @@ func IndexHandler(c echo.Context) error {
 	return views.Index().Render(c.Request().Context(), c.Response())
 }
 
-var ttt = TicTacToe.New()
+var ttt *TicTacToe.Game // Declare a pointer to TicTacToe.Game
 var wss = WebSocketServer.New()
 
 func WSHandler(c echo.Context) (err error) {
@@ -50,50 +50,61 @@ func WSHandler(c echo.Context) (err error) {
 
 		// Reassign role if user with Role = 1 or 2 disconnects
 		if client.Role == 1 || client.Role == 2 {
-			for _, c := range wss.Clients {
+			for _, c := range wss.GetClients() {
 				if c.Role == 0 {
 					c.Role = client.Role
+					if ttt != nil {
+						c.Write(templ.Game(c.Role, ttt.State))
+					}
 					break
 				}
 			}
 		}
 
-		for _, c := range wss.Clients {
+		for _, c := range wss.GetClients() {
 			c.Write(templ.UserLeftTheRoomMessage(client.Name, client.Role))
 			c.Write(templ.CurrentlyOnline(ListClients(wss)))
 		}
 
 		client.UnassignRole()
 
-		if len(ListClients(wss)) < 2 {
+		if len(wss.GetClients()) < 2 {
 			fmt.Println("less then 2 users")
+			ttt = nil // Set ttt to nil if there are less than 2 players
+			for _, c := range wss.GetClients() {
+				c.Write(templ.NoGame())
+			}
 		}
 	})()
 
-	err = client.Write(templ.WaitingForGame(client.Role, ttt.GetState()))
+	err = client.Write(templ.WaitingForGame())
 	if err != nil {
 		return nil
 	}
 
-	for _, c := range wss.Clients {
+	for _, c := range wss.GetClients() {
 		c.Write(templ.UserJoinedTheRoomMessage(client.Name, client.Role))
 		c.Write(templ.CurrentlyOnline(ListClients(wss)))
 	}
 
+	if len(wss.GetClients()) >= 2 && ttt == nil {
+		ttt = TicTacToe.New() // Create a new game of TicTacToe
+	}
+
 	// there's now 2 players
 	// inform all
-	if len(ListClients(wss)) == 2 {
+	if len(wss.GetClients()) == 2 {
 		fmt.Println("exactly 2 users")
-		for _, c := range wss.Clients {
-			c.Write(templ.Game(client.Role, ttt.GetState()))
+		for _, c := range wss.GetClients() {
+			c.Write(templ.Game(client.Role, ttt.State))
 		}
 	}
 
 	// there was already 2 players
 	// inform only the one joining
-	if len(ListClients(wss)) > 2 {
+	if len(wss.GetClients()) > 2 {
 		fmt.Println("more than 2 users")
-		err = client.Write(templ.Game(client.Role, ttt.GetState()))
+		err = client.Write(templ.Game(client.Role, ttt.State))
 		if err != nil {
 			return nil
 		}
@@ -111,7 +122,7 @@ func WSHandler(c echo.Context) (err error) {
 			if err != nil {
 				return nil
 			}
-			for _, c := range wss.Clients {
+			for _, c := range wss.GetClients() {
 				c.Write(templ.NewChatMessage(client.Name, client.Role, msg.ChatInput))
 			}
 
@@ -120,15 +131,15 @@ func WSHandler(c echo.Context) (err error) {
 			col := int(msg.GameInput[2] - '0')
 
 			ttt.MakeMove(row, col, client.Role)
-			for _, c := range wss.Clients {
-				c.Write(templ.Game(c.Role, ttt.GetState()))
+			for _, c := range wss.GetClients() {
+				c.Write(templ.Game(c.Role, ttt.State))
 			}
 		}
 	}
 }
 
-func ListClients(s *WebSocketServer.Server) (names []html.NameRole) {
-	for _, c := range s.Clients {
+func ListClients(wss *WebSocketServer.Server) (names []html.NameRole) {
+	for _, c := range wss.GetClients() {
 		names = append(names, html.NameRole{Name: c.Name, Role: c.Role})
 	}
 	return names

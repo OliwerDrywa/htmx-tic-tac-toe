@@ -34,8 +34,8 @@ func render(c echo.Context, comp templ.Component) []byte {
 func (html HTMLBuilder) SignInForm() []byte {
 	return render(html.c, views.SignInForm())
 }
-func (html HTMLBuilder) WaitingForGame(pov int, state [3][3]int) []byte {
-	return render(html.c, views.WaitingForGame(pov, state))
+func (html HTMLBuilder) WaitingForGame() []byte {
+	return render(html.c, views.WaitingForGame())
 }
 
 func (html HTMLBuilder) UserJoinedTheRoomMessage(username string, role int) []byte {
@@ -58,4 +58,7 @@ func (html HTMLBuilder) EmptyChatInput() []byte {
 }
 func (html HTMLBuilder) Game(pov int, state [3][3]int) []byte {
 	return render(html.c, components.Game(pov, state))
+}
+func (html HTMLBuilder) NoGame() []byte {
+	return render(html.c, components.NoGame())
 }

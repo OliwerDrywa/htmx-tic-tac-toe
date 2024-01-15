@@ -2,6 +2,12 @@ package components
 
 import "fmt"
 
+templ NoGame() {
+	<main id="main" class="w-full grid place-content-center">
+		@LoadingSpinner()
+	</main>
+}
+
 templ Game(pov int, state [3][3]int) {
 	<main id="main" class="w-full grid place-content-center">
 		<h2>now playing: player X</h2>

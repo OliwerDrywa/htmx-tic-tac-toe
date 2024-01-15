@@ -9,19 +9,24 @@ import (
 )
 
 type Server struct {
-	Clients map[*websocket.Conn]*client
+	clients  map[*websocket.Conn]*client
+	existsP1 bool
+	existsP2 bool
 }
 type client struct {
 	ctx    echo.Context
 	conn   *websocket.Conn
 	server *Server
-
-	Name string
-	Role int
+	Name   string
+	Role   int
 }
 
 func New() *Server {
-	return &Server{make(map[*websocket.Conn]*client)}
+	return &Server{
+		make(map[*websocket.Conn]*client),
+		false,
+		false,
+	}
 }
 
 var upgrader = websocket.Upgrader{ReadBufferSize: 1024, WriteBufferSize: 1024}
@@ -32,21 +37,12 @@ func (s *Server) Connect(ctx echo.Context) *client {
 		panic("failed to upgrade ws connection")
 	}
 
-	client := client{
-		ctx:    ctx,
-		conn:   conn,
-		server: s,
-		Name:   "anonymous",
-		Role:   0,
-	}
-	s.Clients[conn] = &client
+	client := client{ctx: ctx, conn: conn, server: s}
+	s.clients[conn] = &client
 
+	fmt.Println(client.Name)
+	fmt.Println(client.Role)
 	return &client
-}
-
-func (c *client) SetName(name string) *client {
-	c.Name = name
-	return c
 }
 
 type Message struct {
@@ -77,7 +73,7 @@ func (c *client) Write(html []byte) (err error) {
 	return c.conn.WriteMessage(websocket.TextMessage, html)
 }
 func (c *client) Disconnect() {
-	delete(c.server.Clients, c.conn)
+	delete(c.server.clients, c.conn)
 	err := c.conn.Close()
 	if err != nil {
 		panic("failed to close connection")
