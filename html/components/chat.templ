@@ -6,7 +6,12 @@ templ Name(name string, variant int) {
 	</span>
 }
 
-templ CurrentlyOnline(names []struct{Name string; Role int}) {
+type NameRole struct {
+	Name string
+	Role int
+}
+
+templ CurrentlyOnline(names []NameRole) {
 	<ul
 		id="whos-here"
 		style="max-width: 20rem;"

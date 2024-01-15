@@ -1,4 +1,4 @@
-package tictactoe
+package TicTacToe
 
 type game struct {
 	state [3][3]int

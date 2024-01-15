@@ -47,10 +47,10 @@ func (html HTMLBuilder) UserLeftTheRoomMessage(username string, role int) []byte
 func (html HTMLBuilder) NewChatMessage(name string, variant int, text string) []byte {
 	return render(html.c, components.NewChatMessage(name, variant, text))
 }
-func (html HTMLBuilder) CurrentlyOnline(names []struct {
-	Name string
-	Role int
-}) []byte {
+
+type NameRole = components.NameRole
+
+func (html HTMLBuilder) CurrentlyOnline(names []NameRole) []byte {
 	return render(html.c, components.CurrentlyOnline(names))
 }
 func (html HTMLBuilder) EmptyChatInput() []byte {
