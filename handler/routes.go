@@ -2,8 +2,8 @@ package handler
 
 import (
 	"fmt"
-	"hackathon23/handler/TicTacToe"
-	"hackathon23/handler/WebSocketServer"
+	"hackathon23/handler/tic_tac_toe"
+	"hackathon23/handler/web_socket_server"
 	"hackathon23/html"
 	"hackathon23/html/views"
 
@@ -14,8 +14,8 @@ func IndexHandler(c echo.Context) error {
 	return views.Index().Render(c.Request().Context(), c.Response())
 }
 
-var ttt *TicTacToe.Game // Declare a pointer to TicTacToe.Game
-var wss = WebSocketServer.New()
+var ttt *tic_tac_toe.Game // Declare a pointer to TicTacToe.Game
+var wss = web_socket_server.New()
 
 func WSHandler(c echo.Context) (err error) {
 	templ := html.NewBuilder(c)
@@ -88,7 +88,7 @@ func WSHandler(c echo.Context) (err error) {
 	}
 
 	if len(wss.GetClients()) >= 2 && ttt == nil {
-		ttt = TicTacToe.New() // Create a new game of TicTacToe
+		ttt = tic_tac_toe.New() // Create a new game of TicTacToe
 	}
 
 	// there's now 2 players
@@ -138,7 +138,7 @@ func WSHandler(c echo.Context) (err error) {
 	}
 }
 
-func ListClients(wss *WebSocketServer.Server) (names []html.NameRole) {
+func ListClients(wss *web_socket_server.Server) (names []html.NameRole) {
 	for _, c := range wss.GetClients() {
 		names = append(names, html.NameRole{Name: c.Name, Role: c.Role})
 	}

@@ -1,4 +1,4 @@
-package WebSocketServer
+package web_socket_server
 
 func (c *client) AssignRole() *client {
 	if !c.server.existsP1 {
