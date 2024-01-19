@@ -56,8 +56,8 @@ func (html HTMLBuilder) CurrentlyOnline(names []NameRole) []byte {
 func (html HTMLBuilder) EmptyChatInput() []byte {
 	return render(html.c, components.EmptyChatInput())
 }
-func (html HTMLBuilder) Game(pov int, state [3][3]int) []byte {
-	return render(html.c, components.Game(pov, state))
+func (html HTMLBuilder) Game(pov int, state [3][3]int, nowPlaying int) []byte {
+	return render(html.c, components.Game(pov, state, nowPlaying))
 }
 func (html HTMLBuilder) NoGame() []byte {
 	return render(html.c, components.NoGame())

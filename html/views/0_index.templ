@@ -2,8 +2,6 @@ package views
 
 import "hackathon23/html/components"
 
-const DEV bool = true
-
 templ Index() {
 	<!DOCTYPE html>
 	<html>
@@ -19,14 +17,8 @@ templ Index() {
 				}
 			</style>
 			<link rel="stylesheet" href="/static/_main.css"/>
-			// htmx
 			<script src="https://unpkg.com/htmx.org@1.9.9"></script>
 			<script src="https://unpkg.com/htmx.org/dist/ext/ws.js"></script>
-			if DEV {
-				<script>
-            		htmx.logAll()
-            	</script>
-			}
 		</head>
 		<body hx-ext="ws" ws-connect="/ws" class="absolute top-0 bottom-0 left-0 right-0 font-mono flex flex-row bg-zinc-900 text-green-500">
 			@components.AnimatedSidebar(true) {

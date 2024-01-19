@@ -40,8 +40,6 @@ func (s *Server) Connect(ctx echo.Context) *client {
 	client := client{ctx: ctx, conn: conn, server: s}
 	s.clients[conn] = &client
 
-	fmt.Println(client.Name)
-	fmt.Println(client.Role)
 	return &client
 }
 

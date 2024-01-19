@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"hackathon23/handler/tic_tac_toe"
 	"hackathon23/handler/web_socket_server"
 	"hackathon23/html"
@@ -14,7 +13,7 @@ func IndexHandler(c echo.Context) error {
 	return views.Index().Render(c.Request().Context(), c.Response())
 }
 
-var ttt *tic_tac_toe.Game // Declare a pointer to TicTacToe.Game
+var ttt = tic_tac_toe.New()
 var wss = web_socket_server.New()
 
 func WSHandler(c echo.Context) (err error) {
@@ -23,7 +22,6 @@ func WSHandler(c echo.Context) (err error) {
 
 	err = client.Write(templ.SignInForm())
 	if err != nil {
-		fmt.Println("		failed to write")
 		client.
 			UnassignRole().
 			Disconnect()
@@ -54,7 +52,7 @@ func WSHandler(c echo.Context) (err error) {
 				if c.Role == 0 {
 					c.Role = client.Role
 					if ttt != nil {
-						c.Write(templ.Game(c.Role, ttt.State))
+						c.Write(templ.Game(c.Role, ttt.State, ttt.NowPlaying))
 					}
 					break
 				}
@@ -69,8 +67,7 @@ func WSHandler(c echo.Context) (err error) {
 		client.UnassignRole()
 
 		if len(wss.GetClients()) < 2 {
-			fmt.Println("less then 2 users")
-			ttt = nil // Set ttt to nil if there are less than 2 players
+			// ttt = nil // Set ttt to nil if there are less than 2 players
 			for _, c := range wss.GetClients() {
 				c.Write(templ.NoGame())
 			}
@@ -87,24 +84,18 @@ func WSHandler(c echo.Context) (err error) {
 		c.Write(templ.CurrentlyOnline(ListClients(wss)))
 	}
 
-	if len(wss.GetClients()) >= 2 && ttt == nil {
-		ttt = tic_tac_toe.New() // Create a new game of TicTacToe
-	}
-
 	// there's now 2 players
 	// inform all
 	if len(wss.GetClients()) == 2 {
-		fmt.Println("exactly 2 users")
 		for _, c := range wss.GetClients() {
-			c.Write(templ.Game(client.Role, ttt.State))
+			c.Write(templ.Game(c.Role, ttt.State, ttt.NowPlaying))
 		}
 	}
 
 	// there was already 2 players
 	// inform only the one joining
 	if len(wss.GetClients()) > 2 {
-		fmt.Println("more than 2 users")
-		err = client.Write(templ.Game(client.Role, ttt.State))
+		err = client.Write(templ.Game(client.Role, ttt.State, ttt.NowPlaying))
 		if err != nil {
 			return nil
 		}
@@ -130,9 +121,12 @@ func WSHandler(c echo.Context) (err error) {
 			row := int(msg.GameInput[0] - '0')
 			col := int(msg.GameInput[2] - '0')
 
-			ttt.MakeMove(row, col, client.Role)
+			err = ttt.MakeMove(row, col, client.Role)
+			if err != nil {
+				break
+			}
 			for _, c := range wss.GetClients() {
-				c.Write(templ.Game(c.Role, ttt.State))
+				c.Write(templ.Game(c.Role, ttt.State, ttt.NowPlaying))
 			}
 		}
 	}

@@ -8,63 +8,51 @@ templ NoGame() {
 	</main>
 }
 
-templ Game(pov int, state [3][3]int) {
+templ Game(pov int, state [3][3]int, nowPlaying int) {
 	<main id="main" class="w-full grid place-content-center">
-		<h2>now playing: player X</h2>
-		<form ws-send>
-			<input name="_type" value="game-input" class="hidden"/>
-			<div class="w-96 h-96 grid grid-cols-3 grid-rows-3 gap-1 bg-green-500">
-				for i := range state {
-					for j, winner := range state[i] {
-						@GameTile(fmt.Sprint(i) + "." + fmt.Sprint(j), pov, winner)
+		<h2>now playing: player { fmt.Sprint(nowPlaying) }</h2>
+		if pov != nowPlaying {
+			<div>
+				<input name="_type" value="game-input" class="hidden"/>
+				<div class="w-96 h-96 grid grid-cols-3 grid-rows-3 gap-1 bg-green-500">
+					for i := range state {
+						for j, owner := range state[i] {
+							@GameTile(fmt.Sprint(i) + "." + fmt.Sprint(j), pov, owner, nowPlaying)
+						}
 					}
-				}
+				</div>
 			</div>
-			<button type="submit">
-				confirm
-			</button>
-		</form>
+		} else {
+			<form ws-send>
+				<input name="_type" value="game-input" class="hidden"/>
+				<div class="w-96 h-96 grid grid-cols-3 grid-rows-3 gap-1 bg-green-500">
+					for i := range state {
+						for j, owner := range state[i] {
+							@GameTile(fmt.Sprint(i) + "." + fmt.Sprint(j), pov, owner, nowPlaying)
+						}
+					}
+				</div>
+				<button type="submit">
+					confirm
+				</button>
+			</form>
+		}
 	</main>
 }
 
-templ GameTile(tag string, pov int, winner int) {
-	switch pov {
-		case 0: 
-			switch winner {
-				case 0: 
-					<div class="bg-zinc-900"></div>
-				case 1: 
-					<div class="bg-yellow-400"></div>
-				case 2: 
-					<div class="bg-cyan-400"></div>
-			}
-		case 1: 
-			switch winner {
-				case 0: 
-					<input
-						type="radio"
-						name="game-input"
-						value={ tag }
-						class="bg-zinc-900"
-					/>
-				case 1: 
-					<div class="bg-yellow-400"></div>
-				case 2: 
-					<div class="bg-cyan-400"></div>
-			}
-		case 2: 
-			switch winner {
-				case 0: 
-					<input
-						type="radio"
-						name="game-input"
-						value={ tag }
-						class="bg-zinc-900"
-					/>
-				case 1: 
-					<div class="bg-yellow-400"></div>
-				case 2: 
-					<div class="bg-cyan-400"></div>
-			}
+templ GameTile(tag string, pov int, owner int, nowPlaying int) {
+	if owner == 1 {
+		<div class="bg-yellow-400"></div>
+	} else if owner == 2 {
+		<div class="bg-cyan-400"></div>
+	} else if nowPlaying != pov {
+		<div class="bg-zinc-900"></div>
+	} else {
+		<input
+			type="radio"
+			name="game-input"
+			value={ tag }
+			class="bg-zinc-900"
+		/>
 	}
 }
